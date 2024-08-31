@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/gameStyle.css">
+    <title>Chess Game</title>
+</head>
+<body>
+    <table>
+            <tr  th:each="row, iterStat1: ${pieces}">
+                <!--When adding up the x and y coordinates of each square, the light squares always equal an even number, while the dark squares always equal an odd number-->
+                    <td  th:each="piece, iterStat2:${row}" th:class = "${(iterStat1.index + iterStat2.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                        th:alt="${piece.name}" 
+                        th:class="${piece.name}">
+                    </td>
+            </tr>
+    </table>
+</body>
+</html>

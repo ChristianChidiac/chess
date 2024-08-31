@@ -1,0 +1,25 @@
+
+table {
+    background-color: black;
+}
+
+td{
+    width: 65px;
+    height: 65px; 
+}
+
+.lightSquare {
+    background-color: burlywood;
+    border: 20px solid burlywood;
+}
+
+.darkSquare {
+    background-color: brown;
+    border: 20px solid brown; 
+ 
+}
+
+.Pawn, .Rook, .Knight, .Bishop, .Queen, .King {
+    height:60px;
+    width:60px;
+}
