@@ -10,7 +10,7 @@
     <table>
             <tr  th:each="row, iterStatY: ${pieces}">
                 <!--When adding up the x and y coordinates of each square, the light squares always equal an even number, while the dark squares always equal an odd number-->
-                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-colour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
                         th:alt="${piece.name}" 
                         th:class="${piece.name}">
                     </td>
@@ -18,35 +18,33 @@
     </table>
 </body>
 <script>
-    
-    var chessSquares = document.querySelectorAll('td');
 
-    chessSquares.forEach(square => {
-
-        square.addEventListener('click', (evt) => {
-
+      var chessBoard = document.getElementsByTagName('table')[0];
+        
+      chessBoard.addEventListener('click', (evt) => {
+           
             var chessBoard = document.getElementsByTagName('table')[0];
             
-            //Get the closest row to the square that was clicked
+            //Get the row of the square that was clicked
             var currentRow = (evt.target).closest('tr');
 
-            //Get the total amount of rows in the chessBoard
+            //Get all the rows in the chessBoard
             var allRows = chessBoard.getElementsByTagName('tr');
-
-            //Get the index of the row this square is in
+       
+            //Get the index of the row the clicked square is in
             var rowIndex = Array.prototype.indexOf.call(allRows, currentRow);
-
-            //Get the closest column to the square that was clicked
+       
+            //Get the square that was clicked
             var currentColumn = (evt.target).closest('td');
 
-            //Get the total amount of columns in the current row
+            //Get all of the columns in the current row
             var allColumns = currentRow.getElementsByTagName('td');
 
-            //Get the index of the Column this square is in
+            //Get the index of the column the clicked square is in
             var columnIndex = Array.prototype.indexOf.call(allColumns, currentColumn);
 
             console.log('(' + columnIndex + ", " + rowIndex +')');
-
+         
             fetch('/recordPieceClick', {
             method: 'POST',
             headers: {
@@ -72,7 +70,6 @@
     });
 
 
-});
     
 </script>
 </html>
