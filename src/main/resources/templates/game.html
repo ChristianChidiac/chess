@@ -9,8 +9,8 @@
 <body>
     <table>
             <tr  th:each="row, iterStatY: ${pieces}">
-                <!--When adding up the x and y coordinates of each square, the light squares always equal an even number, while the dark squares always equal an odd number-->
-                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-colour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                <!--When adding up the x and y coordinates of each chess square, the light squares always equal an even number, while the dark squares always equal an odd number-->
+                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceColour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
                         th:alt="${piece.name}" 
                         th:class="${piece.name}">
                     </td>
@@ -20,55 +20,102 @@
 <script>
 
       var chessBoard = document.getElementsByTagName('table')[0];
+      var turn = 'W'; //Tracks the current turn. 'W' indicates White, and 'B' indicates black 
+      var pieceSelected = false; //Tracks if a piece has been selected
         
       chessBoard.addEventListener('click', (evt) => {
-           
-            var chessBoard = document.getElementsByTagName('table')[0];
-            
+   
             //Get the row of the square that was clicked
             var currentRow = (evt.target).closest('tr');
 
-            //Get all the rows in the chessBoard
-            var allRows = chessBoard.getElementsByTagName('tr');
-       
-            //Get the index of the row the clicked square is in
-            var rowIndex = Array.prototype.indexOf.call(allRows, currentRow);
-       
             //Get the square that was clicked
             var currentColumn = (evt.target).closest('td');
+           
+            if (currentRow && currentColumn) {
+
+            //Get all the rows in the chessBoard
+            var allRows = chessBoard.getElementsByTagName('tr');
+            
+            //Get the index of the row the clicked square is in
+            var rowIndex = Array.prototype.indexOf.call(allRows, currentRow);
 
             //Get all of the columns in the current row
             var allColumns = currentRow.getElementsByTagName('td');
-
+                    
             //Get the index of the column the clicked square is in
             var columnIndex = Array.prototype.indexOf.call(allColumns, currentColumn);
 
-            console.log('(' + columnIndex + ", " + rowIndex +')');
-         
-            fetch('/recordPieceClick', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-           body: JSON.stringify({column: columnIndex, row: rowIndex})
-        })
-        .then(response => response.json())
-        .then(coordinateData => {
-            console.log(coordinateData);
+            //Check if a piece has been selected
+            if(!pieceSelected) {
 
-            //newX is only defined when a piece is moved to a new square, and the coordinate data of that new square is passed in the response. 
-            //Therefore newX will be undefined when a piece is clicked on, but not yet moved to a new square
-            if(coordinateData.newX != null) {
-            var newCoordinates = document.getElementById('(' + coordinateData.newX + ', ' + coordinateData.newY + ')');
-            var originalCoordinates = document.getElementById('(' + coordinateData.originalX + ', ' + coordinateData.originalY + ')');
-            newCoordinates.innerHTML = originalCoordinates.innerHTML;
-            originalCoordinates.innerHTML = null;
+                //Checks if the color of the piece that was selected matches the colour of the current players' turn
+                if (currentColumn.getAttribute('data-pieceColour') == turn) {
+                    //
+                    fetch('/recordPieceSelection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({column: columnIndex, row: rowIndex})
+                    })
+                    .then(response => response.json())
+                    .then(coordinateData => {
+
+                    //Display the coordinates of the clicked square and the status of the piece selection to the console
+                    console.log(coordinateData);
+
+                    //Update pieceSelected to true
+                    pieceSelected = true;
+
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            }
+            else {
+            
+                //Ensures that the new square the selected piece is being moved to does not have a piece of the same colour on it
+                if (currentColumn.getAttribute('data-pieceColour') != turn) {
+      
+                    fetch('/movePiece', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({column: columnIndex, row: rowIndex})
+                    })
+                    .then(response => response.json())
+                    .then(coordinateData => {
+                        
+                        var newSquare = document.getElementById('(' + coordinateData.newXCoordinate + ', ' + coordinateData.newYCoordinate + ')');
+                        var originalSquare = document.getElementById('(' + coordinateData.originalXCoordinate + ', ' + coordinateData.originalYCoordinate + ')');
+
+                        //Move the piece to the new square and remove it from the original square
+                        newSquare.innerHTML = originalSquare.innerHTML;
+                        originalSquare.innerHTML = null;
+
+                        //Update the data-pieceColour attribute of the new square and original square
+                        newSquare.setAttribute('data-pieceColour', originalSquare.getAttribute('data-pieceColour'));
+                        originalSquare.setAttribute('data-pieceColour', 'X');
+
+                        //Change turns
+                        if(turn == 'W') {
+                            turn = 'B';
+                        }
+                        //Change turns
+                        else {
+                            turn = 'W';
+                        }
+
+                        //Set pieceSelected to false since it is now the next turn
+                        pieceSelected = false;
+
+                    })
+                    .catch(error => console.error('Error:', error));
         }
+
         }
-    )
-        .catch(error => console.error('Error:', error));
+    }
     });
-
 
     
 </script>
