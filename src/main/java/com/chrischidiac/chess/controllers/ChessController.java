@@ -74,16 +74,17 @@ public class ChessController {
     }
 
     @PostMapping("/recordPieceSelection")
-    public ResponseEntity<Map<String, Object>> recordPieceSelection(@RequestBody Map<String, Integer> coordinates, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> recordPieceSelection(@RequestBody Map<String, Object> pieceData, HttpSession session) {
 
-        //Add a successful status and the coordinates of the selected piece to the response
+        //Add a successful status and the data of the selected piece to the response
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
-        response.put("coordinates", coordinates);
+        response.put("pieceData", pieceData);
 
         //Add the x and y coordinates of the selected piece to the session
-        session.setAttribute("originalXCoordinate", coordinates.get("column"));
-        session.setAttribute("originalYCoordinate", coordinates.get("row"));
+        session.setAttribute("originalXCoordinate", pieceData.get("column"));
+        session.setAttribute("originalYCoordinate", pieceData.get("row"));
+        session.setAttribute("pieceName", pieceData.get("pieceName"));
 
     return ResponseEntity.ok(response);
     }

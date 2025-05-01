@@ -10,7 +10,9 @@
     <table>
             <tr  th:each="row, iterStatY: ${pieces}">
                 <!--When adding up the x and y coordinates of each chess square, the light squares always equal an even number, while the dark squares always equal an odd number-->
-                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceColour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                    <td th:each="piece, iterStatX:${row}" th:id = "'(' + ${iterStatX.index} + ', ' + ${iterStatY.index} + ')'" 
+                        th:class = "${(iterStatX.index + iterStatY.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece.name}" 
+                        th:data-pieceColour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
                         th:alt="${piece.name}" 
                         th:class="${piece.name}">
                     </td>
@@ -21,7 +23,7 @@
 
       var chessBoard = document.getElementsByTagName('table')[0];
       var turn = 'W'; //Tracks the current turn. 'W' indicates White, and 'B' indicates black 
-      var pieceSelected = false; //Tracks if a piece has been selected
+      var pieceSelected = false; //Tracks if a piece is already selected
         
       chessBoard.addEventListener('click', (evt) => {
    
@@ -45,24 +47,23 @@
             //Get the index of the column the clicked square is in
             var columnIndex = Array.prototype.indexOf.call(allColumns, currentColumn);
 
-            //Check if a piece has been selected
+            //If a piece is not already selected, allow the player to select a piece 
             if(!pieceSelected) {
 
                 //Checks if the color of the piece that was selected matches the colour of the current players' turn
                 if (currentColumn.getAttribute('data-pieceColour') == turn) {
-                    //
                     fetch('/recordPieceSelection', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({column: columnIndex, row: rowIndex})
+                        body: JSON.stringify({column: columnIndex, row: rowIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
                     })
                     .then(response => response.json())
-                    .then(coordinateData => {
+                    .then(pieceData => {
 
                     //Display the coordinates of the clicked square and the status of the piece selection to the console
-                    console.log(coordinateData);
+                    console.log(pieceData);
 
                     //Update pieceSelected to true
                     pieceSelected = true;
@@ -71,8 +72,8 @@
                     .catch(error => console.error('Error:', error));
                 }
             }
+
             else {
-            
                 //Ensures that the new square the selected piece is being moved to does not have a piece of the same colour on it
                 if (currentColumn.getAttribute('data-pieceColour') != turn) {
       
@@ -92,6 +93,10 @@
                         //Move the piece to the new square and remove it from the original square
                         newSquare.innerHTML = originalSquare.innerHTML;
                         originalSquare.innerHTML = null;
+
+                        //Update the data-pieceName attribute of the new square and original square
+                        newSquare.setAttribute('data-pieceName', originalSquare.getAttribute('data-pieceName'));
+                        originalSquare.setAttribute('data-pieceName', 'Empty');
 
                         //Update the data-pieceColour attribute of the new square and original square
                         newSquare.setAttribute('data-pieceColour', originalSquare.getAttribute('data-pieceColour'));
