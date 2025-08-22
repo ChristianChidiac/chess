@@ -4,33 +4,33 @@ import java.io.*;
 
 public class Coordinates implements Serializable {
  
-        private int x;
-        public int y;
+        private int columnIndex;
+        public int rowIndex;
         
     public Coordinates() {
     }
     
-    public Coordinates(int x, int y) {
-        this.x = x;
-        this.y = y;
+    public Coordinates(int columnIndex, int rowIndex) {
+        this.columnIndex = columnIndex;
+        this.rowIndex = rowIndex;
     }
     
-    public int getX() {
-        return x;
+    public int getcolumnIndex() {
+        return columnIndex;
     }
     
-    public void setX(int x)
+    public void setcolumnIndex(int columnIndex)
     {
-        this.x = x;
+        this.columnIndex = columnIndex;
     }
     
-    public int getY() {
-        return y;
+    public int getrowIndex() {
+        return rowIndex;
     }
     
-    public void setY(int y)
+    public void setrowIndex(int rowIndex)
     {
-        this.y = y;
+        this.rowIndex = rowIndex;
     }
     
     

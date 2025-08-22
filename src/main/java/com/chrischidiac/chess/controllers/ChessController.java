@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpSession;
 
 import com.chrischidiac.chess.models.Coordinates;
 import com.chrischidiac.chess.models.Piece;
+import com.chrischidiac.chess.services.legalMovesService;
+
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -81,14 +83,15 @@ public class ChessController {
         response.put("status", "success");
         response.put("pieceData", pieceData);
 
-        //Add the x and y coordinates of the selected piece to the session
-        session.setAttribute("originalXCoordinate", pieceData.get("column"));
-        session.setAttribute("originalYCoordinate", pieceData.get("row"));
+        //Add the rowIndex and columnIndex of the selected piece to the session
+        session.setAttribute("originalRowIndex", pieceData.get("row"));
+        session.setAttribute("originalColumnIndex", pieceData.get("column"));
         session.setAttribute("pieceName", pieceData.get("pieceName"));
 
-    return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
+  
     @PostMapping("/movePiece")
     public ResponseEntity<Map<String, Object>> movePiece(@RequestBody Map<String, Integer> coordinates, Model model, HttpSession session) {
 
@@ -97,29 +100,30 @@ public class ChessController {
         response.put("status", "success");
         response.put("coordinates", coordinates);
 
-        //Get the original x and y coordinates of the square the piece was on
-        int originalXCoordinate = (Integer) session.getAttribute("originalXCoordinate");
-        int originalYCoordinate = (Integer) session.getAttribute("originalYCoordinate");
+        //Get the original rowIndex and columnIndex coordinates of the square the piece was on
+        int originalRowIndex = (Integer) session.getAttribute("originalRowIndex");
+        int originalColumnIndex = (Integer) session.getAttribute("originalColumnIndex");
 
-        //Get the new x and y coordinates of the square the piece is moving to
-        int newXCoordinate = coordinates.get("column");
-        int newYCoordinate = coordinates.get("row");
+        //Get the new rowIndex and columnIndex coordinates of the square the piece is moving to
+        int newRowIndex = coordinates.get("row");
+        int newColumnIndex = coordinates.get("column");
 
-        //Get the difference between the new x and the original x coordinate 
-        int xCoordinateMovement = newXCoordinate - originalXCoordinate;
-        //Get the difference between the new y and the original y coordinate 
-        int yCoordinateMovement = newYCoordinate - originalYCoordinate;
+        //Get the difference between the new rowIndex and the original rowIndex coordinate 
+        int rowIndexMovement = newRowIndex - originalRowIndex;
+
+        //Get the difference between the new columnIndex and the original columnIndex coordinate 
+        int columnIndexMovement = newColumnIndex - originalColumnIndex;
 
         //Move the piece to the new square
-        pieces[newXCoordinate][newYCoordinate] =  pieces[originalXCoordinate][originalYCoordinate];
+        pieces[newColumnIndex][newRowIndex] =  pieces[originalColumnIndex][originalRowIndex];
         //Empty the original square the piece was on
-        pieces[originalXCoordinate][originalYCoordinate] = new Piece("Empty", 'X');
+        pieces[originalColumnIndex][originalRowIndex] = new Piece("Empty", 'X');
 
-        //Add the original x and y coordinates and the new x and y coordinates to the response
-        response.put("originalXCoordinate", originalXCoordinate);
-        response.put("originalYCoordinate", originalYCoordinate);
-        response.put("newXCoordinate", newXCoordinate);
-        response.put("newYCoordinate", newYCoordinate);
+        //Add the original rowIndex and columnIndex coordinates and the new rowIndex and columnIndex coordinates to the response
+        response.put("originalRowIndex", originalRowIndex);
+        response.put("originalColumnIndex", originalColumnIndex);
+        response.put("newColumnIndex", newColumnIndex);
+        response.put("newRowIndex", newRowIndex);
         
         return ResponseEntity.ok(response);
     }
