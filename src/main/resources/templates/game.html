@@ -52,6 +52,7 @@
 
                 //Checks if the color of the piece that was selected matches the colour of the current players' turn
                 if (currentColumn.getAttribute('data-pieceColour') == turn) {
+                    //Record the coordinates of the clicked piece and the piece name
                     fetch('/recordPieceSelection', {
                         method: 'POST',
                         headers: {
@@ -62,11 +63,29 @@
                     .then(response => response.json())
                     .then(pieceData => {
 
-                    //Display the coordinates of the clicked square and the status of the piece selection to the console
+                    //Display the coordinates of the clicked square, the piece name, and the status of the piece selection to the console
                     console.log(pieceData);
 
                     //Update pieceSelected to true
                     pieceSelected = true;
+
+                    })
+                    .catch(error => console.error('Error:', error));
+
+                    
+                    //Get all legal moves for the currently selected piece
+                    fetch('/getLegalMoves', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({row: rowIndex, column: columnIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
+                    })
+                    .then(response => response.json())
+                    .then(legalMoves => {
+
+                    //Display the legal moves for the currently selected piece
+                    console.log(legalMoves);
 
                     })
                     .catch(error => console.error('Error:', error));

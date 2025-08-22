@@ -91,6 +91,25 @@ public class ChessController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/getLegalMoves")
+    public ResponseEntity<Map<String, Object>> getLegalMoves(@RequestBody Map<String, Object> pieceData, HttpSession session) {
+
+       legalMovesService legalMovesService = new legalMovesService(pieces);
+
+       List<Coordinates> legalMoves = legalMovesService.getLegalMoves(
+        String.valueOf(pieceData.get("pieceName")),
+        (Integer) pieceData.get("row"),
+        (Integer) pieceData.get("column")
+        );
+
+        //Add a successful status and the legalMoves for the selected piece to the response
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("legalMoves", legalMoves);
+
+        return ResponseEntity.ok(response);
+    }
+
   
     @PostMapping("/movePiece")
     public ResponseEntity<Map<String, Object>> movePiece(@RequestBody Map<String, Integer> coordinates, Model model, HttpSession session) {
