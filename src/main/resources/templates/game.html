@@ -10,8 +10,8 @@
     <table>
             <tr  th:each="row, rowIndex: ${pieces}">
                 <!--When adding up the rowIndex and columnIndex of each chess square, the light squares always equal an even number, while the dark squares always equal an odd number-->
-                    <td th:each="piece, columnIndex:${row}" th:id = "'(' + ${columnIndex.index} + ', ' + ${rowIndex.index} + ')'" 
-                        th:class = "${(columnIndex.index + rowIndex.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece.name}" 
+                    <td th:each="piece, columnIndex:${row}" th:id = "'(' + ${rowIndex.index} + ', ' + ${columnIndex.index} + ')'" 
+                        th:class = "${(rowIndex.index + columnIndex.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece.name}" 
                         th:data-pieceColour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
                         th:alt="${piece.name}" 
                         th:class="${piece.name}">
@@ -57,7 +57,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({column: columnIndex, row: rowIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
+                        body: JSON.stringify({row: rowIndex, column: columnIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
                     })
                     .then(response => response.json())
                     .then(pieceData => {
@@ -82,13 +82,13 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({column: columnIndex, row: rowIndex})
+                        body: JSON.stringify({row: rowIndex, column: columnIndex})
                     })
                     .then(response => response.json())
                     .then(coordinateData => {
                         
-                        var newSquare = document.getElementById('(' + coordinateData.newColumnIndex + ', ' + coordinateData.newRowIndex + ')');
-                        var originalSquare = document.getElementById('(' + coordinateData.originalColumnIndex + ', ' + coordinateData.originalRowIndex + ')');
+                        var newSquare = document.getElementById('(' + coordinateData.newRowIndex + ', ' + coordinateData.newColumnIndex + ')');
+                        var originalSquare = document.getElementById('(' + coordinateData.originalRowIndex + ', ' + coordinateData.originalColumnIndex + ')');
 
                         //Move the piece to the new square and remove it from the original square
                         newSquare.innerHTML = originalSquare.innerHTML;

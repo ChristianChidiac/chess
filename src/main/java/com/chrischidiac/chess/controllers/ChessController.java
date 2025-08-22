@@ -115,9 +115,9 @@ public class ChessController {
         int columnIndexMovement = newColumnIndex - originalColumnIndex;
 
         //Move the piece to the new square
-        pieces[newColumnIndex][newRowIndex] =  pieces[originalColumnIndex][originalRowIndex];
+        pieces[newRowIndex][newColumnIndex] =  pieces[originalRowIndex][originalColumnIndex];
         //Empty the original square the piece was on
-        pieces[originalColumnIndex][originalRowIndex] = new Piece("Empty", 'X');
+        pieces[originalRowIndex][originalColumnIndex] = new Piece("Empty", 'X');
 
         //Add the original rowIndex and columnIndex coordinates and the new rowIndex and columnIndex coordinates to the response
         response.put("originalRowIndex", originalRowIndex);

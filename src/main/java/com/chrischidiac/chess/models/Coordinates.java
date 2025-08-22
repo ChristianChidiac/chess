@@ -3,24 +3,15 @@ package com.chrischidiac.chess.models;
 import java.io.*;
 
 public class Coordinates implements Serializable {
- 
-        private int columnIndex;
-        public int rowIndex;
+        
+    public int rowIndex;
+    private int columnIndex;
         
     public Coordinates() {
     }
     
-    public Coordinates(int columnIndex, int rowIndex) {
-        this.columnIndex = columnIndex;
+    public Coordinates(int rowIndex, int columnIndex) {
         this.rowIndex = rowIndex;
-    }
-    
-    public int getcolumnIndex() {
-        return columnIndex;
-    }
-    
-    public void setcolumnIndex(int columnIndex)
-    {
         this.columnIndex = columnIndex;
     }
     
@@ -31,6 +22,15 @@ public class Coordinates implements Serializable {
     public void setrowIndex(int rowIndex)
     {
         this.rowIndex = rowIndex;
+    }
+    
+    public int getcolumnIndex() {
+        return columnIndex;
+    }
+    
+    public void setcolumnIndex(int columnIndex)
+    {
+        this.columnIndex = columnIndex;
     }
     
     
