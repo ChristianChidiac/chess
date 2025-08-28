@@ -11,10 +11,10 @@
             <tr  th:each="row, rowIndex: ${pieces}">
                 <!--When adding up the rowIndex and columnIndex of each chess square, the light squares always equal an even number, while the dark squares always equal an odd number-->
                     <td th:each="piece, columnIndex:${row}" th:id = "'(' + ${rowIndex.index} + ', ' + ${columnIndex.index} + ')'" 
-                        th:class = "${(rowIndex.index + columnIndex.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece.name}" 
-                        th:data-pieceColour = "${piece.colour}"><img th:if="${piece.name} != 'Empty'" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
-                        th:alt="${piece.name}" 
-                        th:class="${piece.name}">
+                        th:class = "${(rowIndex.index + columnIndex.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece != null ? piece.name : ''}" 
+                        th:data-pieceColour = "${piece != null ? piece.colour : ''}"><img th:if="${piece != null}" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                        th:alt="${piece != null ? piece.name: ''}" 
+                        th:class="${piece != null ? piece.name: ''}">
                     </td>
             </tr>
     </table>
@@ -115,11 +115,11 @@
 
                         //Update the data-pieceName attribute of the new square and original square
                         newSquare.setAttribute('data-pieceName', originalSquare.getAttribute('data-pieceName'));
-                        originalSquare.setAttribute('data-pieceName', 'Empty');
+                        originalSquare.removeAttribute('data-pieceName');
 
                         //Update the data-pieceColour attribute of the new square and original square
                         newSquare.setAttribute('data-pieceColour', originalSquare.getAttribute('data-pieceColour'));
-                        originalSquare.setAttribute('data-pieceColour', 'X');
+                        originalSquare.removeAttribute('data-pieceColour');
 
                         //Change turns
                         if(turn == 'W') {

@@ -44,14 +44,6 @@ public class ChessController {
                 pieces[1][i] = new Piece("Pawn", 'B');
             }
 
-            for(int i = 0; i < 8; i++)
-            {
-                //Populate board with empty squares in the middle
-                pieces[2][i] = new Piece("Empty", 'X');
-                pieces[3][i] = new Piece("Empty", 'X');
-                pieces[4][i] = new Piece("Empty", 'X');
-                pieces[5][i] = new Piece("Empty", 'X');
-            }
       
         for(int i = 0; i < 8; i++)
             {
@@ -135,8 +127,8 @@ public class ChessController {
 
         //Move the piece to the new square
         pieces[newRowIndex][newColumnIndex] =  pieces[originalRowIndex][originalColumnIndex];
-        //Empty the original square the piece was on
-        pieces[originalRowIndex][originalColumnIndex] = new Piece("Empty", 'X');
+        //Empty the original square the piece was on by setting it to null
+        pieces[originalRowIndex][originalColumnIndex] = null;
 
         //Add the original rowIndex and columnIndex coordinates and the new rowIndex and columnIndex coordinates to the response
         response.put("originalRowIndex", originalRowIndex);
