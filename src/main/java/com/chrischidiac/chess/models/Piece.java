@@ -4,14 +4,16 @@ import java.io.*;
 
 public class Piece implements Serializable  {
     private String name;
-    public char colour;
+    private char colour;
+    private boolean hasMoved;
     
 public Piece() {
 }
 
-public Piece(String name, char colour) {
+public Piece(String name, char colour, boolean hasMoved) {
     this.name = name;
     this.colour = colour;
+    this.hasMoved = hasMoved;
 }
 
 public String getName() {
@@ -30,6 +32,15 @@ public char getColour() {
 public void setColour(char colour)
 {
     this.colour = colour;
+}
+
+public boolean getHasMoved() {
+    return hasMoved;
+}
+
+public void setHasMoved(boolean hasMoved)
+{
+    this.hasMoved = hasMoved;
 }
 
 }
