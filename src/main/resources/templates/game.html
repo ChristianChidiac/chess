@@ -5,25 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/gameStyle.css">
     <title>Chess Game</title>
+    <style>
+        .time-selection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .time-selection-container {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            padding: 40px;
+            border-radius: 20px;
+            border: 5px solid #2c3e50;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .time-selection-container h1 {
+            font-size: 36px;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .welcome-title {
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .time-button {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            border: 2px solid #1f6391;
+            border-radius: 10px;
+            padding: 20px 40px;
+            margin: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .time-button:hover {
+            background: linear-gradient(145deg, #2980b9, #1f6391);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .time-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+    </style>
 </head>
 <body>
+    <div id="timeSelectionOverlay" class="time-selection-overlay">
+        <div class="time-selection-container">
+            <div class="welcome-title">♔ Welcome to Chess ♚</div>
+            <h1>Select Game Time</h1>
+            <button class="time-button" onclick="selectTime(60)">1 Minute</button><br>
+            <button class="time-button" onclick="selectTime(180)">3 Minutes</button><br>
+            <button class="time-button" onclick="selectTime(300)">5 Minutes</button><br>
+            <button class="time-button" onclick="selectTime(600)">10 Minutes</button>
+        </div>
+    </div>
+    
     <table>
             <tr  th:each="row, rowIndex: ${pieces}">
                 <!--When adding up the rowIndex and columnIndex of each chess square, the light squares always equal an even number, while the dark squares always equal an odd number-->
                     <td th:each="piece, columnIndex:${row}" th:id = "'(' + ${rowIndex.index} + ', ' + ${columnIndex.index} + ')'" 
                         th:class = "${(rowIndex.index + columnIndex.index) % 2 == 0 ? 'lightSquare' : 'darkSquare'}" th:data-pieceName = "${piece != null ? piece.name : ''}" 
-                        th:data-pieceColour = "${piece != null ? piece.colour : ''}"><img th:if="${piece != null}" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
+                        th:data-pieceColour = "${piece != null ? piece.colour : ''}" th:data-hasMoved = "${piece != null ? piece.hasMoved : false}"><img th:if="${piece != null}" th:src="'/images/' + ${piece.colour} + '/' + ${piece.name} + '.png'" 
                         th:alt="${piece != null ? piece.name: ''}" 
                         th:class="${piece != null ? piece.name: ''}">
                     </td>
             </tr>
     </table>
+    <button id="newGameBtn">New Game</button>
+    <button id="resignBtn">Resign</button>
+    <button id="agreeToDrawBtn">Agree to Draw</button>
+    <div class="timer">White: <span id="white-timer">10:00</span></div>
+    <div class="timer">Black: <span id="black-timer">10:00</span></div>
+    <div id="overlay" class="overlay"></div>
+    <div id="winnerMessage" class="winner-message"></div>
 </body>
 <script>
+      // Check if time has been selected, if not show the overlay
+      var selectedGameTime = localStorage.getItem('gameTime') ? parseInt(localStorage.getItem('gameTime')) : null;
+      
+      if (!selectedGameTime) {
+          document.getElementById('timeSelectionOverlay').style.display = 'flex';
+      }
+      
+      function selectTime(seconds) {
+          localStorage.setItem('gameTime', seconds);
+          selectedGameTime = seconds;
+          document.getElementById('timeSelectionOverlay').style.display = 'none';
+          // Initialize timers with selected time
+          timeRemainingForWhite = seconds;
+          timeRemainingForBlack = seconds;
+          whiteTimerDisplay.textContent = Math.floor(seconds / 60) + ":" + (seconds % 60 < 10 ? "0" : "") + (seconds % 60);
+          blackTimerDisplay.textContent = Math.floor(seconds / 60) + ":" + (seconds % 60 < 10 ? "0" : "") + (seconds % 60);
+          
+          // Start the timer now
+          startTimer();
+      }
 
       var chessBoard = document.getElementsByTagName('table')[0];
       var turn = 'W'; //Tracks the current turn. 'W' indicates White, and 'B' indicates black 
       var pieceSelected = false; //Tracks if a piece is already selected
+      var legalMoves = [];
+      
+      // Check if game is over from localStorage
+      const gameOverMessage = localStorage.getItem('gameOverMessage');
+      if (gameOverMessage) {
+          showWinner(gameOverMessage);
+          chessBoard.style.pointerEvents = "none";
+      }
+      
+      function showWinner(message) {
+          const overlay = document.getElementById('overlay');
+          const winnerDiv = document.getElementById('winnerMessage');
+          localStorage.setItem('gameOverMessage', message);
+          overlay.style.display = 'block';
+          winnerDiv.textContent = message;
+          winnerDiv.style.display = 'block';
+          
+          // Hide Agree to Draw and Resign buttons
+          document.getElementById('agreeToDrawBtn').style.display = 'none';
+          document.getElementById('resignBtn').style.display = 'none';
+      }
+      
+      // Hide winner message when clicking on overlay
+      document.getElementById('overlay').addEventListener('click', () => {
+          document.getElementById('overlay').style.display = 'none';
+          document.getElementById('winnerMessage').style.display = 'none';
+      });
         
       chessBoard.addEventListener('click', (evt) => {
    
@@ -50,6 +178,11 @@
             //If a piece is not already selected, allow the player to select a piece 
             if(!pieceSelected) {
 
+                
+        // Clear old highlights
+        clearHighlights();
+
+
                 //Checks if the color of the piece that was selected matches the colour of the current players' turn
                 if (currentColumn.getAttribute('data-pieceColour') == turn) {
                     //Record the coordinates of the clicked piece and the piece name
@@ -60,33 +193,73 @@
                         },
                         body: JSON.stringify({row: rowIndex, column: columnIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                                response.json().then(err => {console.log("Could not record piece selection: ", err.message);});
+                                return null;
+                            }
+                            return response.json();
+                        })
                     .then(pieceData => {
-
+                    if (pieceData.status === "success") {
                     //Display the coordinates of the clicked square, the piece name, and the status of the piece selection to the console
                     console.log(pieceData);
-
-                    //Update pieceSelected to true
-                    pieceSelected = true;
-
+                    }
+                    else {
+                        alert("Piece selection failed: " + pieceData.message);
+                    }
                     })
                     .catch(error => console.error('Error:', error));
 
-                    
                     //Get all legal moves for the currently selected piece
                     fetch('/getLegalMoves', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({row: rowIndex, column: columnIndex, pieceName: currentColumn.getAttribute('data-pieceName')})
+                        body: JSON.stringify({
+                            row: rowIndex, 
+                            column: columnIndex,  
+                            selectedPiece: {
+                                name: currentColumn.getAttribute('data-pieceName'),
+                                colour: currentColumn.getAttribute('data-pieceColour'),
+                                hasMoved: currentColumn.getAttribute('data-hasMoved') === 'true'
+                            }})
                     })
-                    .then(response => response.json())
-                    .then(legalMoves => {
+                    .then(response => {
+                        if (!response.ok) {
+                                response.json().then(err => {console.log("Could not fetch the legal moves: ", err.message);});
+                                return null;
+                            }
+                            return response.json();
+                        })
+                    .then(moves => {
+                    if (moves.status === "success") {
+                    //Store the returned moves in the global legalMoves variable
+                    legalMoves = moves.legalMoves;
+                    
+                    if(legalMoves.length === 0) {
+                        console.log("No legal moves available. Piece selection cancelled.");
+                        return;
+                    }
+
+                    //Update pieceSelected to true
+                    pieceSelected = true;
+
+
+
+
+        // Highlight the legal moves
+        highlightLegalMoves(legalMoves);
+
+
 
                     //Display the legal moves for the currently selected piece
-                    console.log(legalMoves);
-
+                    console.log("Legal Moves: ", legalMoves);
+                }
+                else {
+                    alert("Legal moves fetch failed: " + moves.message);
+                }
                     })
                     .catch(error => console.error('Error:', error));
                 }
@@ -101,18 +274,76 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({row: rowIndex, column: columnIndex})
+                        body: JSON.stringify({legalMoves: legalMoves, row: rowIndex, column: columnIndex})
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            response.json().then(err => {console.log("Invalid move: ", err.message);});
+                            //Set piece selected to false
+                            pieceSelected = false;
+                            clearHighlights();
+                            return null;
+                        }
+                        return response.json();
+                    })
                     .then(coordinateData => {
-                        
+                        //Return if coordinateData is null
+                        if (coordinateData.status === "success") {
+
                         var newSquare = document.getElementById('(' + coordinateData.newRowIndex + ', ' + coordinateData.newColumnIndex + ')');
                         var originalSquare = document.getElementById('(' + coordinateData.originalRowIndex + ', ' + coordinateData.originalColumnIndex + ')');
+
+                        const colour = originalSquare.getAttribute('data-pieceColour');
 
                         //Move the piece to the new square and remove it from the original square
                         newSquare.innerHTML = originalSquare.innerHTML;
                         originalSquare.innerHTML = null;
 
+                        //Check if the move played is a pawn promotion
+                        if(coordinateData.isPawnPromoting !== undefined && coordinateData.isPawnPromoting === true) {
+                            
+                            //Freeze the chess board until the pawn promotion is complete
+                            chessBoard.style.pointerEvents = "none";
+
+                            const modal = document.createElement('div');
+                            modal.style.position = 'fixed';
+                            modal.style.top = '50%';
+                            modal.style.left = '50%';
+                            modal.style.transform = 'translate(-50%, -50%)';
+                            modal.style.background = '#fff';
+                            modal.style.border = '1px solid #000';
+                            modal.style.padding = '20px';
+                            modal.style.zIndex = '1000';
+                            modal.style.textAlign = 'center';
+
+                            modal.innerHTML = '<h3>Promote Pawn</h3>';
+
+                            const pieces = ["Knight", "Queen", "Rook", "Bishop"];
+                            pieces.forEach(piece => {
+                            const btn = document.createElement('button');
+                            btn.textContent = piece;
+                            btn.style.margin = '5px';
+                            btn.onclick = () => {
+                            //Update the data-pieceName attribute of the new square with the chosen piece 
+                            newSquare.setAttribute('data-pieceName', piece);
+                            newSquare.setAttribute('data-pieceColour', colour);
+                     
+                             newSquare.innerHTML = `<img src="/images/${colour}/${piece}.png" alt="${piece}" class="${piece}">`;
+
+                                document.body.removeChild(modal);
+                            };
+                            modal.appendChild(btn);
+                        });
+
+                        document.body.appendChild(modal);
+
+                        originalSquare.removeAttribute('data-pieceName');
+                        originalSquare.removeAttribute('data-pieceColour');
+                        //Unfreeze the chess board
+                        chessBoard.style.pointerEvents = "auto";
+                        
+                        }
+                        else {
                         //Update the data-pieceName attribute of the new square and original square
                         newSquare.setAttribute('data-pieceName', originalSquare.getAttribute('data-pieceName'));
                         originalSquare.removeAttribute('data-pieceName');
@@ -120,6 +351,78 @@
                         //Update the data-pieceColour attribute of the new square and original square
                         newSquare.setAttribute('data-pieceColour', originalSquare.getAttribute('data-pieceColour'));
                         originalSquare.removeAttribute('data-pieceColour');
+
+                        }
+
+                        //If the rookNewColumn attribute exists and isn't null, the player is castling and we must move the rook to the correct square next to the king
+                        if(coordinateData.rookNewColumn !== undefined && coordinateData.rookNewColumn !== null) {
+                            var newRookSquare = document.getElementById('(' + coordinateData.newRowIndex + ', ' + coordinateData.rookNewColumn + ')');
+                            var originalRookSquare = document.getElementById('(' + coordinateData.originalRowIndex + ', ' + coordinateData.rookOriginalColumn + ')');
+
+                            //Move the piece to the new square and remove it from the original square
+                            newRookSquare.innerHTML = originalRookSquare.innerHTML;
+                            originalRookSquare.innerHTML = null;
+
+                            //Update the data-pieceName attribute of the new square and original square
+                            newRookSquare.setAttribute('data-pieceName', originalRookSquare.getAttribute('data-pieceName'));
+                            originalRookSquare.removeAttribute('data-pieceName');
+
+                            //Update the data-pieceColour attribute of the new square and original square
+                            newRookSquare.setAttribute('data-pieceColour', originalRookSquare.getAttribute('data-pieceColour'));
+                            originalRookSquare.removeAttribute('data-pieceColour');
+                        }
+
+                         //If the capturedPawnRowIndex attribute exists and isn't null, the player is castling and we must move the rook to the correct square next to the king
+                        if(coordinateData.capturedPawnRowIndex !== undefined && coordinateData.capturedPawnRowIndex !== null) {
+                            var capturedPawnSquare = document.getElementById('(' + coordinateData.capturedPawnRowIndex + ', ' + coordinateData.capturedPawnColumnIndex + ')');
+                        
+                            capturedPawnSquare.innerHTML = null;
+
+                            capturedPawnSquare.removeAttribute('data-pieceName');
+                            capturedPawnSquare.removeAttribute('data-pieceColour');
+                        }
+
+                        let opponentColour = (turn === 'W') ? 'B' : 'W';
+
+                    //Validate whether or not the opponent's king is in checkmate or stalemate after the current player's move
+                    fetch('/endgameValidation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({pieceColour: opponentColour})
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("HTTP error. status: " + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(endgameData => {
+                        if (endgameData.status === "success") {
+                            if (endgameData.isKingInCheckmate) {
+                                showWinner("🏆 Checkmate! " + (turn === 'W' ? 'White' : 'Black') + " wins! 🏆");
+                                //Disable Chess Board
+                                chessBoard.style.pointerEvents = "none";
+                                clearInterval(x);
+                            }
+                            else if(endgameData.isKingInStalemate) {
+                                showWinner("Stalemate! The game ends in a draw.");
+                                //Disable Chess Board
+                                chessBoard.style.pointerEvents = "none";
+                                clearInterval(x);
+                            }
+                            }
+                            else {
+                                alert("Endgame validation failed: " + endgameData.message);
+                            }
+                        })
+                    
+                        //Set pieceSelected to false since the current player's turn has ended
+                        pieceSelected = false;
+
+                        //Clear legal move highlights
+                        clearHighlights();
 
                         //Change turns
                         if(turn == 'W') {
@@ -129,18 +432,166 @@
                         else {
                             turn = 'W';
                         }
-
-                        //Set pieceSelected to false since it is now the next turn
-                        pieceSelected = false;
-
+                    } 
+                    else {
+                    alert("Move could not be completed: " + coordinateData.message);
+                    pieceSelected = false;
+                    }
                     })
                     .catch(error => console.error('Error:', error));
-        }
-
+                }
+                else {
+                    pieceSelected = false;
+                    //Clear legal move highlights
+                    clearHighlights();
+                }
         }
     }
     });
 
+    document.getElementById('newGameBtn').addEventListener('click', () => {
+    // Stop the timer if x is defined
+    if (typeof x !== 'undefined') {
+        clearInterval(x);
+    }
     
+    // Reset server session and board state
+    fetch('/newGame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response =>{
+            if (!response.ok) {
+                throw new Error("HTTP error. status: " + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === "success") {
+                // Clear all localStorage data
+                localStorage.clear();
+                // Redirect to home to start fresh
+                window.location.href = '/';
+            }
+            else {
+                alert("New Game could not be started: " + data.message);
+            }
+            })
+            .catch(error => console.error('Error restarting game:', error));
+            });
+
+    document.getElementById('resignBtn').addEventListener('click', () => {
+        // Determine winner based on whose turn it is (current player resigns)
+        const winner = turn === 'W' ? 'Black' : 'White';
+        const loser = turn === 'W' ? 'White' : 'Black';
+        
+        showWinner(`🏳️ ${loser} resigned. ${winner} wins! 🏳️`);
+        chessBoard.style.pointerEvents = "none";
+        if (typeof x !== 'undefined') {
+            clearInterval(x);
+        }
+    });
+
+    document.getElementById('agreeToDrawBtn').addEventListener('click', () => {
+    fetch('/agreeToDraw', {
+         method: 'POST' 
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error. status: " + response.status);
+            }
+                return response.json();
+            })
+        .then(data => {
+            if (data.status === "success") {
+                 showWinner("Draw Offer Accepted! The game ends in a draw.");
+                //Disable Chess Board
+                chessBoard.style.pointerEvents = "none";
+                clearInterval(x);
+            }
+            else {
+                alert("Draw Offer could not be completed: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error offering draw:', error));
+    });
+    
+
+// Function to clear previous highlights
+function clearHighlights() {
+    const allSquares = chessBoard.getElementsByTagName('td');
+    Array.from(allSquares).forEach(square => {
+        square.classList.remove('legal-move');
+        square.classList.remove('capture-move');
+    });
+}
+
+function highlightLegalMoves(legalMoves) {
+    legalMoves.forEach(move => {
+        const square = document.getElementById(`(${move.rowIndex}, ${move.columnIndex})`);
+        if (!square) return;
+
+        const pieceColour = square.getAttribute('data-pieceColour');
+        if (pieceColour && pieceColour !== turn) {
+            square.classList.add('capture-move');
+        } else {
+            square.classList.add('legal-move');
+        }
+    });
+}
+
+//Get selected game time from localStorage, default to 600 seconds (10 minutes)
+var selectedGameTime = localStorage.getItem('gameTime') ? parseInt(localStorage.getItem('gameTime')) : 600;
+
+//Start with selected time for each player, or restore the time in localStorage if game was in progress
+var timeRemainingForWhite = localStorage.getItem('whiteTime') ? parseInt(localStorage.getItem('whiteTime')) : selectedGameTime;
+var timeRemainingForBlack = localStorage.getItem('blackTime') ? parseInt(localStorage.getItem('blackTime')) : selectedGameTime;
+var whiteTimerDisplay = document.getElementById("white-timer");
+var blackTimerDisplay = document.getElementById("black-timer");
+
+// Initialize timer display
+whiteTimerDisplay.textContent = Math.floor(timeRemainingForWhite / 60) + ":" + (timeRemainingForWhite % 60 < 10 ? "0" : "") + (timeRemainingForWhite % 60);
+blackTimerDisplay.textContent = Math.floor(timeRemainingForBlack / 60) + ":" + (timeRemainingForBlack % 60 < 10 ? "0" : "") + (timeRemainingForBlack % 60);
+
+var x;
+
+function startTimer() {
+    x = setInterval(function() {
+        if(turn === 'W') {
+            timeRemainingForWhite--;
+            localStorage.setItem('whiteTime', timeRemainingForWhite);
+            let minutes = Math.floor(timeRemainingForWhite / 60);
+            let seconds = timeRemainingForWhite % 60;
+            whiteTimerDisplay.textContent = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+            if(timeRemainingForWhite <= 0) {
+                showWinner("⏰ White ran out of time. Black wins! ⏰");
+                //Disable Chess Board
+                chessBoard.style.pointerEvents = "none";
+                clearInterval(x);
+            }
+        }
+        else {
+            timeRemainingForBlack--;
+            localStorage.setItem('blackTime', timeRemainingForBlack);
+            let minutes = Math.floor(timeRemainingForBlack / 60);
+            let seconds = timeRemainingForBlack % 60;
+            blackTimerDisplay.textContent = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+            if(timeRemainingForBlack <= 0) {
+                showWinner("⏰ Black ran out of time. White wins! ⏰");
+                //Disable Chess Board
+                chessBoard.style.pointerEvents = "none";
+                clearInterval(x);
+            }
+        }
+    }, 1000);
+}
+
+//Start timer if game time was already selected and game is not over, this ensures the timer continues after a page refresh
+if (selectedGameTime && localStorage.getItem('gameTime') && !gameOverMessage) {
+    startTimer();
+}
+
 </script>
 </html>

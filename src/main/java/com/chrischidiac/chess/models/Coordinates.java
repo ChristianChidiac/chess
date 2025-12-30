@@ -15,23 +15,35 @@ public class Coordinates implements Serializable {
         this.columnIndex = columnIndex;
     }
     
-    public int getrowIndex() {
+    public int getRowIndex() {
         return rowIndex;
     }
     
-    public void setrowIndex(int rowIndex)
+    public void setRowIndex(int rowIndex)
     {
         this.rowIndex = rowIndex;
     }
     
-    public int getcolumnIndex() {
+    public int getColumnIndex() {
         return columnIndex;
     }
     
-    public void setcolumnIndex(int columnIndex)
+    public void setColumnIndex(int columnIndex)
     {
         this.columnIndex = columnIndex;
     }
     
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Coordinates other = (Coordinates) obj;
+        return this.rowIndex == other.rowIndex && this.columnIndex == other.columnIndex;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * rowIndex + columnIndex;
+    }
     
 }
