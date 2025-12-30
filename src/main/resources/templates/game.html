@@ -92,6 +92,7 @@
                     </td>
             </tr>
     </table>
+<<<<<<< Updated upstream
     <button id="newGameBtn">New Game</button>
     <button id="resignBtn">Resign</button>
     <button id="agreeToDrawBtn">Agree to Draw</button>
@@ -99,6 +100,12 @@
     <div class="timer">Black: <span id="black-timer">10:00</span></div>
     <div id="overlay" class="overlay"></div>
     <div id="winnerMessage" class="winner-message"></div>
+=======
+    <button id="restartBtn">Restart Game</button>
+    <button id="agreeToDrawBtn">Agree to Draw</button>
+    <div class="timer">White: <span id="white-timer">10:00</span></div>
+    <div class="timer">Black: <span id="black-timer">10:00</span></div>
+>>>>>>> Stashed changes
 </body>
 <script>
       // Check if time has been selected, if not show the overlay
@@ -126,6 +133,7 @@
       var turn = 'W'; //Tracks the current turn. 'W' indicates White, and 'B' indicates black 
       var pieceSelected = false; //Tracks if a piece is already selected
       var legalMoves = [];
+<<<<<<< Updated upstream
       
       // Check if game is over from localStorage
       const gameOverMessage = localStorage.getItem('gameOverMessage');
@@ -152,6 +160,8 @@
           document.getElementById('overlay').style.display = 'none';
           document.getElementById('winnerMessage').style.display = 'none';
       });
+=======
+>>>>>>> Stashed changes
         
       chessBoard.addEventListener('click', (evt) => {
    
@@ -401,13 +411,21 @@
                     .then(endgameData => {
                         if (endgameData.status === "success") {
                             if (endgameData.isKingInCheckmate) {
+<<<<<<< Updated upstream
                                 showWinner("🏆 Checkmate! " + (turn === 'W' ? 'White' : 'Black') + " wins! 🏆");
+=======
+                                alert("Checkmate! " + (turn === 'W' ? 'Black' : 'White') + " wins!");
+>>>>>>> Stashed changes
                                 //Disable Chess Board
                                 chessBoard.style.pointerEvents = "none";
                                 clearInterval(x);
                             }
                             else if(endgameData.isKingInStalemate) {
+<<<<<<< Updated upstream
                                 showWinner("Stalemate! The game ends in a draw.");
+=======
+                                alert("Stalemate! The game ends in a draw.");
+>>>>>>> Stashed changes
                                 //Disable Chess Board
                                 chessBoard.style.pointerEvents = "none";
                                 clearInterval(x);
@@ -449,6 +467,7 @@
     }
     });
 
+<<<<<<< Updated upstream
     document.getElementById('newGameBtn').addEventListener('click', () => {
     // Stop the timer if x is defined
     if (typeof x !== 'undefined') {
@@ -516,6 +535,55 @@
         .catch(error => console.error('Error offering draw:', error));
     });
     
+=======
+    document.getElementById('restartBtn').addEventListener('click', () => {
+    fetch('/restartGame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response =>{
+            if (!response.ok) {
+                throw new Error("HTTP error. status: " + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === "success") {
+                //Refresh the page
+                location.reload();
+            }
+            else {
+                alert("Game Restart could not be completed: " + data.message);
+            }
+            })
+            .catch(error => console.error('Error restarting game:', error));
+            });
+
+    document.getElementById('agreeToDrawBtn').addEventListener('click', () => {
+    fetch('/agreeToDraw', {
+         method: 'POST' 
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("HTTP error. status: " + response.status);
+            }
+                return response.json();
+            })
+        .then(data => {
+            if (data.status === "success") {
+                 alert("Draw Offer Accepted! The game ends in a draw.");
+                //Disable Chess Board
+                chessBoard.style.pointerEvents = "none";
+                clearInterval(x);
+            }
+            else {
+                alert("Draw Offer could not be completed: " + data.message);
+            }
+        })
+        .catch(error => console.error('Error offering draw:', error));
+    });
+    
+>>>>>>> Stashed changes
 
 // Function to clear previous highlights
 function clearHighlights() {
@@ -540,6 +608,7 @@ function highlightLegalMoves(legalMoves) {
     });
 }
 
+<<<<<<< Updated upstream
 //Get selected game time from localStorage, default to 600 seconds (10 minutes)
 var selectedGameTime = localStorage.getItem('gameTime') ? parseInt(localStorage.getItem('gameTime')) : 600;
 
@@ -592,6 +661,46 @@ function startTimer() {
 if (selectedGameTime && localStorage.getItem('gameTime') && !gameOverMessage) {
     startTimer();
 }
+=======
+//Start with 600 seconds (10 minutes) per player
+var timeRemainingForWhite = 600;
+var timeRemainingForBlack = 600;
+var whiteTimerDisplay = document.getElementById("white-timer");
+var blackTimerDisplay = document.getElementById("black-timer");
+
+var x = setInterval(function() {
+
+if(turn === 'W') {
+    timeRemainingForWhite--;
+    let minutes = Math.floor(timeRemainingForWhite / 60);
+    let seconds = timeRemainingForWhite % 60;
+    whiteTimerDisplay.textContent = minutes + ": " + seconds;
+
+    if(timeRemainingForWhite <= 0) {
+        alert("White ran out of time. Black wins!");
+        //Disable Chess Board
+        chessBoard.style.pointerEvents = "none";
+        clearInterval(x);
+    }
+}
+else {
+    timeRemainingForBlack--;
+    let minutes = Math.floor(timeRemainingForBlack / 60);
+    let seconds = timeRemainingForBlack % 60;
+    blackTimerDisplay.textContent = minutes + ": " + seconds;
+
+      if(timeRemainingForBlack <= 0) {
+        alert("Black ran out of time. White wins!");
+        //Disable Chess Board
+        chessBoard.style.pointerEvents = "none";
+        clearInterval(x);
+    }
+}
+
+
+
+}, 1000);
+>>>>>>> Stashed changes
 
 </script>
 </html>

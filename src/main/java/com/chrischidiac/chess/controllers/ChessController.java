@@ -26,6 +26,7 @@ public class ChessController {
     private Piece[][] pieces = new Piece[8][8];
     GameState gameState = new GameState();
     private static final int BOARD_SIZE = 8;
+<<<<<<< Updated upstream
     
     @Autowired
     private ChessServiceFactory serviceFactory;
@@ -34,6 +35,8 @@ public class ChessController {
     public String root(Model model, HttpSession session) {
         return fillBoard(model, session);
     }
+=======
+>>>>>>> Stashed changes
 
     @GetMapping("/startGame")
     public String fillBoard(Model model, HttpSession session) {
@@ -133,7 +136,11 @@ public class ChessController {
         int row = moveRequest.getRow();
         int column = moveRequest.getColumn();
 
+<<<<<<< Updated upstream
        LegalMovesService legalMovesService = serviceFactory.createLegalMovesService(pieces, gameState);
+=======
+       LegalMovesService legalMovesService = new LegalMovesService(pieces, gameState);
+>>>>>>> Stashed changes
 
        List<Coordinates> legalMoves = legalMovesService.getLegalMoves(pieceName, selectedPiece, row, column);
 
@@ -249,7 +256,11 @@ public class ChessController {
         Piece[][] pieces = (Piece[][]) session.getAttribute("pieces");
         GameState gameState = (GameState) session.getAttribute("gameState");
 
+<<<<<<< Updated upstream
        EndgameValidatorService endgameValidatorService = serviceFactory.createEndgameValidatorService(pieces, gameState);
+=======
+       EndgameValidatorService endgameValidatorService = new EndgameValidatorService(pieces, gameState);
+>>>>>>> Stashed changes
        char kingColour = body.get("pieceColour").charAt(0);
 
         boolean isKingInCheckmate = endgameValidatorService.isKingInCheckmate(kingColour);
@@ -268,8 +279,13 @@ public class ChessController {
         return ResponseEntity.ok(response);
     }
 
+<<<<<<< Updated upstream
     @PostMapping("/newGame")
     public ResponseEntity<Map<String, Object>> newGame(Model model, HttpSession session) {
+=======
+    @PostMapping("/restartGame")
+    public ResponseEntity<Map<String, Object>> restartGame(Model model, HttpSession session) {
+>>>>>>> Stashed changes
         initializeBoard(model, session);
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
