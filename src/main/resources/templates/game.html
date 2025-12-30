@@ -101,15 +101,18 @@
     <div id="winnerMessage" class="winner-message"></div>
 </body>
 <script>
+
+
+
       // Check if time has been selected, if not show the overlay
-      var selectedGameTime = localStorage.getItem('gameTime') ? parseInt(localStorage.getItem('gameTime')) : null;
-      
+      var selectedGameTime = sessionStorage.getItem('gameTime') ? parseInt(sessionStorage.getItem('gameTime')) : null;
+
       if (!selectedGameTime) {
           document.getElementById('timeSelectionOverlay').style.display = 'flex';
       }
       
       function selectTime(seconds) {
-          localStorage.setItem('gameTime', seconds);
+          sessionStorage.setItem('gameTime', seconds);
           selectedGameTime = seconds;
           document.getElementById('timeSelectionOverlay').style.display = 'none';
           // Initialize timers with selected time
@@ -122,8 +125,9 @@
           startTimer();
       }
 
-      var chessBoard = document.getElementsByTagName('table')[0];
-      var turn = 'W'; //Tracks the current turn. 'W' indicates White, and 'B' indicates black 
+    var chessBoard = document.getElementsByTagName('table')[0];
+    //Get turn from localStorage
+    var turn = localStorage.getItem('turn') ? localStorage.getItem('turn') : 'W'; // 'W' = White, 'B' = Black
       var pieceSelected = false; //Tracks if a piece is already selected
       var legalMoves = [];
       
@@ -424,7 +428,7 @@
                         //Clear legal move highlights
                         clearHighlights();
 
-                        //Change turns
+                        //Change turns and add turn to localStorage 
                         if(turn == 'W') {
                             turn = 'B';
                         }
@@ -432,6 +436,7 @@
                         else {
                             turn = 'W';
                         }
+                        localStorage.setItem('turn', turn);
                     } 
                     else {
                     alert("Move could not be completed: " + coordinateData.message);
@@ -466,10 +471,11 @@
             }
             return response.json();
         })
-        .then(data => {
+            .then(data => {
             if (data.status === "success") {
-                // Clear all localStorage data
+                // Clear all localStorage and sessionStorage data
                 localStorage.clear();
+                sessionStorage.clear();
                 // Redirect to home to start fresh
                 window.location.href = '/';
             }
@@ -540,8 +546,8 @@ function highlightLegalMoves(legalMoves) {
     });
 }
 
-//Get selected game time from localStorage, default to 600 seconds (10 minutes)
-var selectedGameTime = localStorage.getItem('gameTime') ? parseInt(localStorage.getItem('gameTime')) : 600;
+//Get selected game time from sessionStorage, default to 600 seconds (10 minutes)
+var selectedGameTime = sessionStorage.getItem('gameTime') ? parseInt(sessionStorage.getItem('gameTime')) : 600;
 
 //Start with selected time for each player, or restore the time in localStorage if game was in progress
 var timeRemainingForWhite = localStorage.getItem('whiteTime') ? parseInt(localStorage.getItem('whiteTime')) : selectedGameTime;
@@ -588,8 +594,8 @@ function startTimer() {
     }, 1000);
 }
 
-//Start timer if game time was already selected and game is not over, this ensures the timer continues after a page refresh
-if (selectedGameTime && localStorage.getItem('gameTime') && !gameOverMessage) {
+//Start timer if game time was already selected in this tab and game is not over
+if (selectedGameTime && sessionStorage.getItem('gameTime') && !gameOverMessage) {
     startTimer();
 }
 
